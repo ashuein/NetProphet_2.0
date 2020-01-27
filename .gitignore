@@ -9,3 +9,13 @@ SRC/meme_4.9.1/
 OUTPUT/
 RESOURCES/tmp/
 LOG/
+run_tfa/*
+run_tfa/cynthia_yiming/*
+!run_tfa/analysis_check_correctness_prepared_matrices.ipynb
+!run_tfa/analysis_distribution_expr_tfa_data.ipynb
+!run_tfa/cynthia_yiming/analysis_check_cynthias_data.ipynb
+!run_tfa/cynthia_yiming/analysis_prepare_Cynthia_Yiming_for_ZEV_run.ipynb
+run_test/
+TF_Network_Evaluation/scripts/plots/*
+TF_Network_Evaluation/scripts/plots_old/*
+

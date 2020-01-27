@@ -78,9 +78,10 @@ currentDirectory=${PWD}
 lassoAdjMtrFileName=lasso.adjmtr
 combinedModelAdjMtrFileName=np.adjmtr
 combinedModelAdjLstFileName=np.adjlst
+job_name=''
+p_out_err=""
 
-
-while getopts “:hmlco::g::f::t:r:a:p:d:n:u:” OPTION
+while getopts “:hmlco::g::f::t:r:a:p:d:n:u:j:o:e:” OPTION
 do
 	case $OPTION in
 		h)
@@ -134,6 +135,13 @@ do
 		u)
 			NetProphetDir=$OPTARG
 			;;
+
+		j)	job_name=$OPTARG
+			;;
+
+		e)	p_out_err=$OPTARG
+			;;
+		
 		?)
 			usage
 			exit
@@ -153,11 +161,11 @@ export PATH=${NetProphetDir}:$PATH
 if [ $parallelizedFlag -eq 1 ]
 then
 	## Running in the parallelized fashion
-	sbatch run_netprophet_parallel_init.sh ${targetExpressionFile} ${regulatorExpressionFile} ${allowedMatrixFile} ${perturbationMatrixFile} ${differentialExpressionMatrixFile} ${microarrayFlag} ${nonGlobalShrinkageFlag} ${lassoAdjMtrFileName} ${combinedModelAdjMtrFileName} ${outputDirectory} ${combinedModelAdjLstFileName} ${regulatorGeneNamesFile} ${targetGeneNamesFile}
+	sbatch -J ${job_name} -o ${p_out_err}_%J.out -e ${p_out_err}_%J.err run_netprophet_parallel_init.sh ${targetExpressionFile} ${regulatorExpressionFile} ${allowedMatrixFile} ${perturbationMatrixFile} ${differentialExpressionMatrixFile} ${microarrayFlag} ${nonGlobalShrinkageFlag} ${lassoAdjMtrFileName} ${combinedModelAdjMtrFileName} ${outputDirectory} ${combinedModelAdjLstFileName} ${regulatorGeneNamesFile} ${targetGeneNamesFile}
 else
 	## Running in the sequential fashion
 	cd $NetProphetDir
-	R --no-save --slave --no-init-file --args ${targetExpressionFile} ${regulatorExpressionFile} ${allowedMatrixFile} ${perturbationMatrixFile} ${differentialExpressionMatrixFile} ${microarrayFlag} ${nonGlobalShrinkageFlag} ${lassoAdjMtrFileName} ${combinedModelAdjMtrFileName} ${outputDirectory} ${combinedModelAdjLstFileName} ${regulatorGeneNamesFile} ${targetGeneNamesFile} ${NetProphetDir} < run_netprophet.r
+	R --no-save --slave --no-init-file --args ${targetExpressionFile} ${regulatorExpressionFile} ${allowedMatrixFile} ${perturbationMatrixFile} ${differentialExpressionMatrixFile} ${microarrayFlag} ${nonGlobalShrinkageFlag} ${lassoAdjMtrFileName} ${combinedModelAdjMtrFileName} ${outputDirectory} ${combinedModelAdjLstFileName} ${regulatorGeneNamesFile} ${targetGeneNamesFile} ${NetProphetDir}  < run_netprophet.r
 fi
 
 cd ${currentDirectory}

@@ -15,7 +15,8 @@ targetGeneNamesFileName <- toString(args[13])
 
 source("global.lars.regulators.r")
 
-tdata <- as.matrix(read.table(targetExpressionFile))
+# tdata <- as.matrix(read.table(targetExpressionFile))
+tdata <- as.matrix(read.table(targetExpressionFile, sep='\t)) # changed by Dhoha.
 rdata <- as.matrix(read.table(regulatorExpressionFile))
 allowed <- as.matrix(read.table(allowedMatrixFile))
 pert <- as.matrix(read.table(perturbationMatrixFile))

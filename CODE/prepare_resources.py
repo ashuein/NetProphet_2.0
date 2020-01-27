@@ -53,7 +53,7 @@ def make_nonrepeat_conditions(conditions):
     for x in np.unique(np.array(non_unique_conds)):
         indx = np.where(conditions == x)[0]
         for i in range(len(indx)):
-            conditions[indx[i]] = conditions[indx[i]] +'_'+ str(i+1)
+            conditions[indx[i]] = str(conditions[indx[i]]) +'_'+ str(i+1)
     return conditions
 
 
@@ -75,7 +75,8 @@ def main(argv):
     reg_indx = []
     for i in range(len(regulators)):
     	reg_indx.append(np.where(genes == regulators[i])[0][0])
-    data = np.loadtxt(parsed.expr_data)
+    #data = np.loadtxt(parsed.expr_data)
+    data = np.genfromtxt(parsed.expr_data, delimiter='\t') # changed by Dhoha.
     np.savetxt(parsed.output_reg_expr, data[reg_indx,:], fmt="%.10f", delimiter="\t")
 
     ##prepare fold change of expression data (conditions x genes)

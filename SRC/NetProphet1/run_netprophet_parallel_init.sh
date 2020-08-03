@@ -6,6 +6,9 @@
 #SBATCH -o ../../LOG/map_netprophet1_network_%A.out
 #SBATCH -e ../../LOG/map_netprophet1_network_%A.err
 
+module load R/3.2.1
+module load openmpi/1.8.3
+
 targetExpressionFile=${1}
 regulatorExpressionFile=${2}
 allowedMatrixFile=${3}

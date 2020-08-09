@@ -70,35 +70,14 @@ generate_allowed_perturbed_matrices = function (l_in_target
   data
 }
 
-scale_normalize_expr_matrices = function(p_in_expr_target
-                                         , p_in_expr_reg
-                                         ){
+scale_normalize_expr_matrix = function(df_expr){
+  df_expr = df_expr - apply(df_expr, 1, mean)
+  sd_expr = apply(df_expr,1,sd)
+  sd_floor_expr = mean(sd_expr) + sd(sd_expr)
+  norm_expr = apply(rbind(rep(sd_floor_expr,times=length(sd_expr)),sd_expr),2,max) / sqrt(dim(df_expr)[2])
+  df_expr = df_expr / (norm_expr* sqrt(dim(df_expr)[2]-1))
   
-  # DEBUG MODE
-  # p_in_expr_target = '/scratch/mblab/dabid/netprophet/net_in/sub2_kem_expr_6023_1485'
-  # p_in_expr_reg = '/scratch/mblab/dabid/netprophet/net_in/sub2_kem_expr_reg_151_1485'
-  
-  # scale target expression
-  df_expr_target = read.csv(p_in_expr_target, header=FALSE, sep="\t")
-  df_expr_target = df_expr_target - apply(df_expr_target, 1, mean)
-  sd_expr_target = apply(df_expr_target,1,sd)
-  sd_floor_expr_target = mean(sd_expr_target) + sd(sd_expr_target)
-  norm_expr_target = apply(rbind(rep(sd_floor_expr_target,times=length(sd_expr_target)),sd_expr_target),2,max) / sqrt(dim(df_expr_target)[2])
-  df_expr_target = df_expr_target / (norm_expr_target* sqrt(dim(df_expr_target)[2]-1))
-  
-  # scale regulator expression
-  df_expr_reg = read.csv(p_in_expr_reg, header=FALSE, sep="\t") 
-  df_expr_reg = df_expr_reg - apply(df_expr_reg, 1, mean) # center data
-  sd_expr_reg = apply(df_expr_reg,1,sd)
-  sd_floor_expr_reg = mean(sd_expr_reg) + sd(sd_expr_reg)
-  norm_expr_reg = apply(rbind(rep(sd_floor_expr_reg,times=length(sd_expr_reg)),sd_expr_reg),2,max) / sqrt(dim(df_expr_reg)[2])
-  df_expr_reg = df_expr_reg / (norm_expr_reg * sqrt(dim(df_expr_reg)[2]-1))
-  
-  # return scaled and normalized expression matrices for target and regulators
-  data = list()
-  data[[1]] = df_expr_target
-  data[[2]] = df_expr_reg
-  data
+  df_expr
 }
 
 if (sys.nframe() == 0){

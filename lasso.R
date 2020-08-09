@@ -16,17 +16,19 @@ generate_lasso_net = function(p_in_target
    # ================================================== #
    source("/scratch/mblab/dabid/netprophet/code_NetProphet_2.0/SRC/NetProphet1/global.lars.regulators.r")  # for generating lasso network
    source("/scratch/mblab/dabid/netprophet/code_NetProphet_2.0/prepare_data.R")  # for preparing data
-   #DEBUG MODE
-   p_in_target = '/scratch/mblab/dabid/netprophet/net_debug/target'
-   p_in_reg = '/scratch/mblab/dabid/netprophet/net_debug/reg'
-   p_in_sample = '/scratch/mblab/dabid/netprophet/net_debug/sample'
-   p_in_expr_target ='/scratch/mblab/dabid/netprophet/net_debug/expr_target'
-   p_in_expr_reg = '/scratch/mblab/dabid/netprophet/net_debug/expr_reg'
-   flag_global_shrinkage = 'ON'
-   flag_local_shrinkage = 'OFF'
-   p_out_dir = '/scratch/mblab/dabid/netprophet/net_debug/'
-   fname_lasso = '/scratch/mblab/dabid/netprophet/net_debug/net_lasso.tsv'
-   flag_rerank_greenfield = "ON"
+   
+   # #DEBUG MODE
+   # p_in_target = '/scratch/mblab/dabid/netprophet/net_debug/target'
+   # p_in_reg = '/scratch/mblab/dabid/netprophet/net_debug/reg'
+   # p_in_sample = '/scratch/mblab/dabid/netprophet/net_debug/sample'
+   # p_in_expr_target ='/scratch/mblab/dabid/netprophet/net_debug/expr_target'
+   # p_in_expr_reg = '/scratch/mblab/dabid/netprophet/net_debug/expr_reg'
+   # flag_global_shrinkage = 'ON'
+   # flag_local_shrinkage = 'OFF'
+   # p_out_dir = '/scratch/mblab/dabid/netprophet/net_debug/'
+   # fname_lasso = '/scratch/mblab/dabid/netprophet/net_debug/net_lasso.tsv'
+   # flag_rerank_greenfield = "ON"
+   # flag_greenfield_method ="TWO"
    
    # if output directory doesn't exist, create it
    ifelse(!dir.exists(file.path(p_out_dir))
@@ -43,10 +45,14 @@ generate_lasso_net = function(p_in_target
    df_allowed = as.matrix(df_allowed_perturbed[[1]])
    df_perturbed = as.matrix(df_allowed_perturbed[[2]])
  
-   # scale and normalize expression matrices for target and regulators
-   df_expr_target_reg = scale_normalize_expr_matrices(p_in_expr_target, p_in_expr_reg)
-   df_expr_target = as.matrix(df_expr_target_reg[[1]])
-   df_expr_reg = as.matrix(df_expr_target_reg[[2]])
+   # scale and normalize expression matrix of target genes
+   df_expr_target = read.csv(p_in_expr_target, header=FALSE, sep="\t")
+   df_expr_target = scale_normalize_expr_matrix(df_expr_target)
+   df_expr_target = as.matrix(df_expr_target)
+   # scale and normalizr expression matrix of regulators
+   df_expr_reg = read.csv(p_in_expr_reg, header=FALSE, sep="\t")
+   df_expr_reg = scale_normalize_expr_matrix(df_expr_reg)
+   df_expr_reg = as.matrix(df_expr_reg)
   
    # generate lasso network
    if (flag_local_shrinkage == "ON"){
@@ -56,19 +62,15 @@ generate_lasso_net = function(p_in_target
                             , prior
                             , df_allowed
                             , skip_reg
-                            ,skip_gen
-     )}
-   
-   if(flag_global_shrinkage == "ON"){
+                            ,skip_gen)
+     } else if(flag_global_shrinkage == "ON"){
      df_prior = matrix(1,ncol=dim(df_expr_target)[1] ,nrow=dim(df_expr_reg)[1] )
      df_lasso_net = lars.multi.optimize(df_expr_target
                                      , df_expr_reg
                                      , df_perturbed
                                      , df_prior
-                                     , df_allowed)
-     }
-   
-   if(flag_rerank_greenfield == "ON"){
+                                     , df_allowed)[[1]]
+     } else if(flag_rerank_greenfield == "ON"){
       
       # generate lasso with all regulators and calculate MSE for every target
       df_prior = matrix(1, ncol=dim(df_expr_target)[1], nrow=dim(df_expr_reg)[1])
@@ -76,28 +78,29 @@ generate_lasso_net = function(p_in_target
                                                   , df_expr_reg
                                                   , df_perturbed
                                                   , df_prior
-                                                  , df_allowed)
+                                                  , df_allowed)[[1]]
       # calculate MSE for full-regulator lasso
       mse_full_reg = list()
       for (idx_target in seq(1, length(l_in_target), 1)){
-         mse_full_reg[idx_target] = 1/length(l_in_sample) * sum((df_expr_target[idx_target, ] - (t(df_expr_reg) %*% df_lasso_net_full_reg[[1]][, idx_target]))**2)
+         mse_full_reg[idx_target] = 1/length(l_in_sample) * sum((df_expr_target[idx_target, ] - (t(df_expr_reg) %*% df_lasso_net_full_reg[, idx_target]))**2)
       }
       # generate lasso with removing a predictor each time
       net_lasso_greenfield = list()
       for (idx_reg in seq(1, length(l_in_reg), 1)){
-         df_expr_reg_minus_reg = df_expr_reg[-idx_reg, ]
-         df_prior_minus_reg = matrix(1,ncol=dim(df_expr_target)[1] ,nrow=dim(df_expr_reg_minus_reg)[1])
-         df_allowed_perturbed_minus_reg = generate_allowed_perturbed_matrices(l_in_target, l_in_reg[-idx], l_in_sample, p_out_dir)
+         # generate the allowed and perturbed matrices for reg minus
+         df_allowed_perturbed_minus_reg = generate_allowed_perturbed_matrices(l_in_target, l_in_reg[-idx_reg], l_in_sample, p_out_dir)
          df_allowed_minus_reg = as.matrix(df_allowed_perturbed_minus_reg[[1]])
          df_perturbed_minus_reg = as.matrix(df_allowed_perturbed_minus_reg[[2]])
+         # create the df_expr_reg_minus_reg
+         df_expr_reg_minus_reg = df_expr_reg[-idx_reg, ]
+         df_prior_minus_reg = matrix(1,ncol=dim(df_expr_target)[1] ,nrow=dim(df_expr_reg_minus_reg)[1])
          
          if (flag_greenfield_method == "TWO"){
             df_lasso_net_minus_reg = lars.multi.optimize(df_expr_target
                                                          , df_expr_reg_minus_reg
                                                          , df_perturbed_minus_reg
                                                          , df_prior_minus_reg
-                                                         , df_allowed_minus_reg
-            )
+                                                         , df_allowed_minus_reg)[[1]]
          }
          else if (flag_greenfield_method == "ONE"){
             df_lasso_net_minus_reg = df_lasso_net_full_reg[-idx_reg, ]
@@ -106,25 +109,26 @@ generate_lasso_net = function(p_in_target
          # calculate MSE for minus-regulator for every target
          mse_minus_reg = list()
          for (idx_target in seq(1, length(l_in_target), 1)){
-            mse_minus_reg[idx_target] = 1/length(l_in_sample) * sum((df_expr_target[idx_target, ] -(t(df_expr_reg_minus_reg) %*% df_lasso_net_minus_reg[[1]][, idx_target]))**2)
+            mse_minus_reg[idx_target] = 1/length(l_in_sample) * sum((df_expr_target[idx_target, ] -(t(df_expr_reg_minus_reg) %*% df_lasso_net_minus_reg[, idx_target]))**2)
          }
          
-         net_lasso_greenfield_2[[idx_reg]] = mapply("-"
+         net_lasso_greenfield[[idx_reg]] = mapply("-"
                                                     , matrix(1, ncol=1, nrow = length(l_in_target))
                                                     ,(mapply("/",mse_full_reg,mse_minus_reg,SIMPLIFY = FALSE))
                                                     , SIMPLIFY=FALSE
                                                     )
-         df_net_lasso_greenfield_2 = data.frame(matrix(unlist(net_lasso_greenfield_2), ncol=max(lengths(net_lasso_greenfield_2)), byrow=TRUE))
+         df_lasso_net = data.frame(matrix(unlist(net_lasso_greenfield), ncol=max(lengths(net_lasso_greenfield)), byrow=TRUE))
       }
    }
    
    # write lasso network
-   write.table(df_lasso_net[[1]]
+   write.table(df_lasso_net
                , file.path(p_out_dir, fname_lasso)
                , row.names=FALSE
                , col.names=FALSE
                , quote=FALSE
                )
+   return(0)
 }
 
 if (sys.nframe() == 0){

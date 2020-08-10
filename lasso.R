@@ -9,6 +9,7 @@ generate_lasso_net = function(p_in_target
                               , flag_rerank_greenfield
                               , flag_greenfield_method
                               , fname_lasso
+                              , flag_debug
                              ){
   
    # ================================================== #
@@ -17,18 +18,20 @@ generate_lasso_net = function(p_in_target
    source("/scratch/mblab/dabid/netprophet/code_NetProphet_2.0/SRC/NetProphet1/global.lars.regulators.r")  # for generating lasso network
    source("/scratch/mblab/dabid/netprophet/code_NetProphet_2.0/prepare_data.R")  # for preparing data
    
-   # #DEBUG MODE
-   # p_in_target = '/scratch/mblab/dabid/netprophet/net_debug/target'
-   # p_in_reg = '/scratch/mblab/dabid/netprophet/net_debug/reg'
-   # p_in_sample = '/scratch/mblab/dabid/netprophet/net_debug/sample'
-   # p_in_expr_target ='/scratch/mblab/dabid/netprophet/net_debug/expr_target'
-   # p_in_expr_reg = '/scratch/mblab/dabid/netprophet/net_debug/expr_reg'
-   # flag_global_shrinkage = 'ON'
-   # flag_local_shrinkage = 'OFF'
-   # p_out_dir = '/scratch/mblab/dabid/netprophet/net_debug/'
-   # fname_lasso = '/scratch/mblab/dabid/netprophet/net_debug/net_lasso.tsv'
-   # flag_rerank_greenfield = "ON"
-   # flag_greenfield_method ="TWO"
+   if (flag_debug == "ON"){
+      p_in_target = '/scratch/mblab/dabid/netprophet/net_debug/target'
+      p_in_reg = '/scratch/mblab/dabid/netprophet/net_debug/reg'
+      p_in_sample = '/scratch/mblab/dabid/netprophet/net_debug/sample'
+      p_in_expr_target ='/scratch/mblab/dabid/netprophet/net_debug/expr_target'
+      p_in_expr_reg = '/scratch/mblab/dabid/netprophet/net_debug/expr_reg'
+      flag_global_shrinkage = 'ON'
+      flag_local_shrinkage = 'OFF'
+      p_out_dir = '/scratch/mblab/dabid/netprophet/net_debug/'
+      fname_lasso = '/scratch/mblab/dabid/netprophet/net_debug/net_lasso.tsv'
+      flag_rerank_greenfield = "ON"
+      flag_greenfield_method ="TWO"
+   }
+   
    
    # if output directory doesn't exist, create it
    ifelse(!dir.exists(file.path(p_out_dir))
@@ -154,10 +157,11 @@ if (sys.nframe() == 0){
   flag_greenfield_method = make_option(c("--flag_greenfield_method"), type="character", default="ONE", help="ONE or TWO for greenfield method 1 or 2")
   fname_lasso = make_option(c("--fname_lasso"), type="character", default=NULL, help="output - path of generated lasso network")
   p_out_dir = make_option(c("--p_out_dir"), type="character", default=NULL, help="output - path of output directory for results")
+  flag_debug = make_option(c("--flag_debug"), type="character", default="OFF", help="flag for debugging mode.")
   
   opt_parser = OptionParser(option_list=list(p_in_target, p_in_reg, p_in_sample, p_in_expr_target, p_in_expr_reg
                                              , flag_global_shrinkage, flag_local_shrinkage, flag_rerank_greenfield
-                                             , flag_greenfield_method, p_out_dir, fname_lasso
+                                             , flag_greenfield_method, p_out_dir, fname_lasso, flag_debug
                                              ))
   opt = parse_args(opt_parser)
   
@@ -179,6 +183,7 @@ if (sys.nframe() == 0){
                                  , flag_greenfield_method=opt$flag_greenfield_method
                                  , p_out_dir=opt$p_out_dir
                                  , fname_lasso=opt$fname_lasso
+                                 , flag_debug=opt$flag_debug
                                  ))
 }
 

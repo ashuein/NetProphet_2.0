@@ -1,4 +1,4 @@
-source("global.lars.regulators.r")
+source("/scratch/mblab/dabid/netprophet/code_NetProphet_2.0/SRC/NetProphet1/global.lars.regulators.r")
 ## TODO: Both seed and # of cv folds (in global.lars.regulators.r) are parameters that should be exposed to the user
 seed <- 747
 fold <- 10
@@ -7,7 +7,7 @@ rdata <- as.matrix(read.table(regulatorExpressionFile))
 allowed <- as.matrix(read.table(allowedMatrixFile))
 pert <- as.matrix(read.table(perturbationMatrixFile))
 targets <- seq(dim(tdata)[1])
-
+#TODO
 if(microarrayFlag == 0) {
 	##RNA-Seq Data
 	tdata <- log(tdata+1)/log(2)

@@ -13,7 +13,9 @@ combinedAdjLstFileName <- toString(args[11])
 regulatorGeneNamesFileName <- toString(args[12])
 targetGeneNamesFileName <- toString(args[13])
 
-source("run_netprophet_parallel.r")
+source("/scratch/mblab/dabid/netprophet/code_NetProphet_2.0/SRC/NetProphet1/run_netprophet_parallel.r")
+#install.packages("/scratch/mblab/dabid/netprophet/code_NetProphet_2.0/SRC/R_pkgs/Rmpi_0.5-9.tar.gz", type="source", repos=NULL)
+
 library(Rmpi)
 mpi.bcast.Robj2slave(targetExpressionFile)
 mpi.bcast.Robj2slave(regulatorExpressionFile)

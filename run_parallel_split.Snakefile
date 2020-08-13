@@ -10,8 +10,13 @@ rule make_directories:
 	output:
 		r = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],"tmp"]),
 		n = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],"networks/"]),
+		s1 = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],"networks/subnetworks.1"]),
+		s2 = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],"networks/subnetworks.2"]),
+		s3 = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],"networks/subnetworks.3"]),
+		s4 = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],"networks/subnetworks.4"]),
+		s5 = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],"networks/subnetworks.5"]),
 		m = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],"motif_inference/"]),
-		s = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
+		v = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
 					"motif_inference/network_scores/"]),
 		b = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
 					"motif_inference/network_bins/"]),
@@ -22,7 +27,7 @@ rule make_directories:
 		flag = "/".join([config["NETPROPHET2_DIR"],"LOG/flag.make_dir"])
 	shell:
 		"""
-		printf "Step 0: Initializing\n"; mkdir -p {output.r}; mkdir -p {output.n}; mkdir -p {output.m}; mkdir -p {output.s}; mkdir -p {output.b}; mkdir -p {output.p}; mkdir -p {output.q}; touch {output.flag}
+		printf "Step 0: Initializing\n"; mkdir -p {output.r}; mkdir -p {output.n}; mkdir -p {output.s1}; mkdir -p {output.s2}; mkdir -p {output.s3}; mkdir -p {output.s4}; mkdir -p {output.s5}; mkdir -p {output.m}; mkdir -p {output.v}; mkdir -p {output.b}; mkdir -p {output.p}; mkdir -p {output.q}; touch {output.flag}
 		"""
 
 rule prepare_resources:
@@ -50,35 +55,178 @@ rule prepare_resources:
 		flag = "/".join([config["NETPROPHET2_DIR"],"LOG/flag.prepare_resources"])
 	shell:
 		"""
-		python CODE/prepare_resources.py -g {input.g} -r {input.r} -e {input.e} -c {input.c} -or {output.r} -of {output.f} -oa {output.a} -op1 {output.p1} -op2 {output.p2}; touch {output.flag}; printf "[Step 0 completed]\n\n";
+		python CODE/prepare_resources.py -g {input.g} -r {input.r} -e {input.e} -c {input.c} -or {output.r} -of {output.f} -oa {output.a} -op1 {output.p1} -op2 {output.p2}; touch {output.flag}";
 		"""
 
-rule map_np_network:
+rule prepare_split_resources:
 	input:
-		g = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
-					config["FILENAME_GENES"]]),
+		r = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"]]),
+		flag = "/".join([config["NETPROPHET2_DIR"],"LOG/flag.prepare_resources"])
+	output:
+		flag = "/".join([config["NETPROPHET2_DIR"],"LOG/flag.prepare_split_resources"])
+	shell:
+		"""
+		python CODE/split_resources.py -i {input.r} -n 5; touch {output.flag}; printf "[Step 0 completed]\n\n"
+		"""
+
+rule map_np_subnetwork1:
+	input:
+		u = "/".join([config["NETPROPHET2_DIR"],"SRC/NetProphet1/"]),
 		f = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
 					config["FILENAME_REGULATORS"]]),
-		t = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
-					config["FILENAME_EXPRESSION_DATA"]]),
-		d = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
-					config["FILENAME_DE_ADJMTR"]]),
-		u = "/".join([config["NETPROPHET2_DIR"],"SRC/NetProphet1/"]),
 		r = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
 					"tmp/rdata.expr"]),
+		flag = "/".join([config["NETPROPHET2_DIR"],"LOG/flag.prepare_split_resources"])
+	output:
+		g = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/genes.1"]),
+		t = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/data.expr.1"]),
+		d = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/de.signed.adj.1"]),
 		a = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
-					"tmp/allowed.adj"]),
+					"tmp/allowed.adj.1"]),
 		p = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
-					"tmp/data.pert.adj"]),
+					"tmp/data.pert.adj.1"]),
 		o = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
-					"networks/"]),
-		flag = "/".join([config["NETPROPHET2_DIR"],"LOG/flag.prepare_resources"])
+					"networks/subnetworks.1/"]),
+		n = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
+					"networks/subnetworks.1/np.adjmtr"])
+	shell:
+		"""
+		printf "Step 1.1: Mapping NetProphet 1.0 subnetwork1\nPlease check separate log for this process.\n"; ./SRC/NetProphet1/netprophet -m -c -u {input.u} -t {output.t} -r {input.r} -a {output.a} -p {output.p} -d {output.d} -g {output.g} -f {input.f} -o {output.o} -n {output.n}
+		"""
+
+rule map_np_subnetwork2:
+	input:
+		u = "/".join([config["NETPROPHET2_DIR"],"SRC/NetProphet1/"]),
+		f = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					config["FILENAME_REGULATORS"]]),
+		r = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/rdata.expr"]),
+		flag = "/".join([config["NETPROPHET2_DIR"],"LOG/flag.prepare_split_resources"])
+	output:
+		g = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/genes.2"]),
+		t = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/data.expr.2"]),
+		d = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/de.signed.adj.2"]),
+		a = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/allowed.adj.2"]),
+		p = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/data.pert.adj.2"]),
+		o = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
+					"networks/subnetworks.2/"]),
+		n = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
+					"networks/subnetworks.2/np.adjmtr"])
+	shell:
+		"""
+		printf "Step 1.2: Mapping NetProphet 1.0 subnetwork2\nPlease check separate log for this process.\n"; ./SRC/NetProphet1/netprophet -m -c -u {input.u} -t {output.t} -r {input.r} -a {output.a} -p {output.p} -d {output.d} -g {output.g} -f {input.f} -o {output.o} -n {output.n}
+		"""
+
+rule map_np_subnetwork3:
+	input:
+		u = "/".join([config["NETPROPHET2_DIR"],"SRC/NetProphet1/"]),
+		f = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					config["FILENAME_REGULATORS"]]),
+		r = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/rdata.expr"]),
+		flag = "/".join([config["NETPROPHET2_DIR"],"LOG/flag.prepare_split_resources"])
+	output:
+		g = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/genes.3"]),
+		t = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/data.expr.3"]),
+		d = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/de.signed.adj.3"]),
+		a = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/allowed.adj.3"]),
+		p = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/data.pert.adj.3"]),
+		o = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
+					"networks/subnetworks.3/"]),
+		n = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
+					"networks/subnetworks.3/np.adjmtr"])
+	shell:
+		"""
+		printf "Step 1.3: Mapping NetProphet 1.0 subnetwork3\nPlease check separate log for this process.\n"; ./SRC/NetProphet1/netprophet -m -c -u {input.u} -t {output.t} -r {input.r} -a {output.a} -p {output.p} -d {output.d} -g {output.g} -f {input.f} -o {output.o} -n {output.n}
+		"""
+
+rule map_np_subnetwork4:
+	input:
+		u = "/".join([config["NETPROPHET2_DIR"],"SRC/NetProphet1/"]),
+		f = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					config["FILENAME_REGULATORS"]]),
+		r = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/rdata.expr"]),
+		flag = "/".join([config["NETPROPHET2_DIR"],"LOG/flag.prepare_split_resources"])
+	output:
+		g = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/genes.4"]),
+		t = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/data.expr.4"]),
+		d = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/de.signed.adj.4"]),
+		a = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/allowed.adj.4"]),
+		p = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/data.pert.adj.4"]),
+		o = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
+					"networks/subnetworks.4/"]),
+		n = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
+					"networks/subnetworks.4/np.adjmtr"])
+	shell:
+		"""
+		printf "Step 1.4: Mapping NetProphet 1.0 subnetwork4\nPlease check separate log for this process.\n"; ./SRC/NetProphet1/netprophet -m -c -u {input.u} -t {output.t} -r {input.r} -a {output.a} -p {output.p} -d {output.d} -g {output.g} -f {input.f} -o {output.o} -n {output.n}
+		"""
+
+rule map_np_subnetwork5:
+	input:
+		u = "/".join([config["NETPROPHET2_DIR"],"SRC/NetProphet1/"]),
+		f = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					config["FILENAME_REGULATORS"]]),
+		r = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/rdata.expr"]),
+		flag = "/".join([config["NETPROPHET2_DIR"],"LOG/flag.prepare_split_resources"])
+	output:
+		g = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/genes.5"]),
+		t = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/data.expr.5"]),
+		d = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/de.signed.adj.5"]),
+		a = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/allowed.adj.5"]),
+		p = "/".join([config["NETPROPHET2_DIR"],config["RESOURCES_DIR"],
+					"tmp/data.pert.adj.5"]),
+		o = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
+					"networks/subnetworks.5/"]),
+		n = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
+					"networks/subnetworks.5/np.adjmtr"])
+	shell:
+		"""
+		printf "Step 1.5: Mapping NetProphet 1.0 subnetwork5\nPlease check separate log for this process.\n"; ./SRC/NetProphet1/netprophet -m -c -u {input.u} -t {output.t} -r {input.r} -a {output.a} -p {output.p} -d {output.d} -g {output.g} -f {input.f} -o {output.o} -n {output.n}
+		"""
+
+rule combine_np_subnetworks:
+	input:
+		s1 = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
+					"networks/subnetworks.1/np.adjmtr"]),
+		s2 = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
+					"networks/subnetworks.2/np.adjmtr"]),
+		s3 = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
+					"networks/subnetworks.3/np.adjmtr"]),
+		s4 = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
+					"networks/subnetworks.4/np.adjmtr"]),
+		s5 = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
+					"networks/subnetworks.5/np.adjmtr"])
 	output:
 		n = "/".join([config["NETPROPHET2_DIR"],config["OUTPUT_DIR"],
 					"networks/np.adjmtr"])
 	shell:
 		"""
-		printf "Step 1: Mapping NetProphet 1.0 network\nPlease check separate log for this process.\n"; ./SRC/NetProphet1/netprophet -m -c -u {input.u} -t {input.t} -r {input.r} -a {input.a} -p {input.p} -d {input.d} -g {input.g} -f {input.f} -o {input.o} -n {output.n}
+		printf "Step 1.6: Combining NetProphet 1.0 subnetworks\n"; paste -d"\t" {input.s1} {input.s2} {input.s3} {input.s4} {input.s5} > {output.n}
 		"""
 
 rule map_bart_network:
@@ -95,7 +243,7 @@ rule map_bart_network:
 					"networks/bn.adjmtr"])
 	shell:
 		"""
-		printf "Step 2: Mapping BART network\nPlease check separate log for this process.\n"; sbatch CODE/run_build_bart_network.sh {input.t} {input.p} {input.f} {output.o} false;
+		printf "Step 2: Mapping BART subnetwork\nPlease check separate log for this process.\n"; sbatch CODE/run_build_bart_network.sh {input.t} {input.p} {input.f} {output.o} false;
 		"""
 
 rule weighted_average_np_network:

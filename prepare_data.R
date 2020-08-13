@@ -70,7 +70,13 @@ generate_allowed_perturbed_matrices = function (l_in_target
   data
 }
 
-scale_normalize_expr_matrix = function(df_expr){
+scale_normalize_expr_matrix = function(df_expr, flag_microarray){
+  #RNA-Seq Data
+  if (flag_microarray == "OFF"){
+      tdata <- log(tdata+1)/log(2)
+      rdata <- log(rdata+1)/log(2)
+    }
+    
   df_expr = df_expr - apply(df_expr, 1, mean)
   sd_expr = apply(df_expr,1,sd)
   sd_floor_expr = mean(sd_expr) + sd(sd_expr)
@@ -81,7 +87,6 @@ scale_normalize_expr_matrix = function(df_expr){
 }
 
 if (sys.nframe() == 0){
-# if (identical (environment (), globalenv ())){
   # install and load optparse package
   if (!require(optparse)){
     install.packages("optparse", repo="http://cran.rstudio.com/")

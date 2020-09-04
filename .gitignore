@@ -20,3 +20,6 @@ TF_Network_Evaluation/scripts/plots/*
 TF_Network_Evaluation/scripts/plots_old/*
 .Rhistory
 SRC/NetProphet1/core
+old/
+run_netprophet3.0_kem.sh
+run_netprophet3.0_zev.sh

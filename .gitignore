@@ -23,3 +23,5 @@ SRC/NetProphet1/core
 old/
 run_netprophet3.0_kem.sh
 run_netprophet3.0_zev.sh
+code/__pycache__/helper.cpython-36.pyc
+code/.ipynb_checkpoints/

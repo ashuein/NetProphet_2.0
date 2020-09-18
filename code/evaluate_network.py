@@ -26,6 +26,8 @@ def evaluate_network(p_in_net
         df_net = p_in_net
     # Change the shape of network to | Regulator | Target | Value |
     if len(list(df_net.columns)) > 3:  # network is written in matrix, flatten the network
+        if len(df_net.columns.to_list()) > len(l_target):
+            df_net = df_net.dropna(axis='columns')
         df_net.index, df_net.columns = l_reg, l_target
         df_net = melt(df_net.reset_index(), id_vars='index', value_vars=l_target)
     df_net.columns = ['REGULATOR', 'TARGET', 'VALUE']
@@ -47,7 +49,10 @@ def evaluate_network(p_in_net
         last_rank = int(nbr_tf * nbr_edges_per_reg)
         bin_size = int(last_rank/nbr_cutoff)
 
-        df_net['PREDICTED'] = (df_net['REGULATOR'].isin(list(set(df_binding_event['REGULATOR'].to_list())))).astype(int)
+#         df_net['PREDICTED'] = (df_net['REGULATOR'].isin(list(set(df_binding_event['REGULATOR'].to_list())))).astype(int)
+        df_net['PREDICTED'] = (df_net['REGULATOR'].isin(list(set(df_binding_event['REGULATOR'].to_list())))
+                               & df_net['TARGET'].isin(list(set(df_binding_event['TARGET'].to_list())))
+                              ).astype(int)
         df_net['SUPPORTED'] = (df_net.index.isin(df_binding_event.index.to_list())).astype(int)
 
         l_x, l_per_sup, l_nbr_sup = [], [], []
@@ -65,7 +70,8 @@ def evaluate_network(p_in_net
     if 'auc' in l_method:
         from sklearn import metrics
         
-        fpr, tpr, thresholds = metrics.roc_curve(df_net.loc[:, 'SUPPORTED'], df_net.loc[:, 'VALUE'])
+        # fpr, tpr, thresholds = metrics.roc_curve(df_net.loc[:, 'SUPPORTED'], df_net.loc[:, 'VALUE'])
+        fpr, tpr, thresholds = metrics.roc_curve(df_net.iloc[0:last_rank, 4], df_net.iloc[0:last_rank, 2])
         auc = metrics.auc(fpr, tpr)
         
     # write the evaluation into network

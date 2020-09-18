@@ -16,6 +16,16 @@ read regulator < <( sed -n ${SLURM_ARRAY_TASK_ID}p $FN_REGULATORS )
 set -e
 
 if [[ ! -z ${regulator} ]]; then
-	perl ${FIREDIR}/fire.pl --expfiles=${DIR_BINNED_EXPR}/$regulator --exptype=discrete --fastafile_dna=${FN_FASTA} --k=7 --jn=20 --jn_t=16 --nodups=1 --dorna=0 --dodnarna=0
+    
+	perl /scratch/mblab/dabid/netprophet/code_netprophet2.0/SRC/FIRE-1.1a/fire.pl \
+        --expfiles=${DIR_BINNED_EXPR}/$regulator \
+        --exptype=discrete \
+        --fastafile_dna=${FN_FASTA} \
+        --k=7 \
+        --jn=20 \
+        --jn_t=16 \
+        --nodups=1 \
+        --dorna=0 \
+        --dodnarna=0
 	echo $regulator >> $LOG_FILE
 fi

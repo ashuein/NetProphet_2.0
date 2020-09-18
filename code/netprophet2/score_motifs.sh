@@ -17,11 +17,13 @@ LOG_FILE=$5
 read regulator < <( sed -n ${SLURM_ARRAY_TASK_ID}p $FN_REGULATORS )
 set -e
 
+export MEME_BIN=/scratch/mblab/dabid/netprophet/code_netprophet2.0/SRC/meme/bin
+
 if [[ ! -z ${regulator} ]]; then
 	if [ -f $FN_TF_PWM/$regulator ]; then
-		fimo -o $OUT_FIMO/$regulator --thresh 5e-3 $FN_TF_PWM/$regulator $FN_PROMOTERS
+		${MEME_BIN}/fimo -o $OUT_FIMO/$regulator --thresh 5e-3 $FN_TF_PWM/$regulator $FN_PROMOTERS
 		sed ' 1d ' $OUT_FIMO/$regulator/fimo.txt | cut -f 1,2,7 > $OUT_FIMO/$regulator/temp.txt
-		ruby ../CODE/estimate_affinity.rb -i $OUT_FIMO/$regulator/temp.txt > $OUT_FIMO/${regulator}.summary
+		ruby /scratch/mblab/dabid/netprophet/code_netprophet3.0/code/netprophet2/estimate_affinity.rb -i $OUT_FIMO/$regulator/temp.txt > $OUT_FIMO/${regulator}.summary
 	else
 		printf "No motif inferred for %s\n" $regulator
 	fi

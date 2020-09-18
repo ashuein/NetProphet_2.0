@@ -1,10 +1,5 @@
 from json import load
 
-#d_config__value = load(open('config.json', 'r'))
-#FLAG_DEBUG = d_config__value['debug']
-#P_CONFIG = d_config__value['p_config']
-
-
 def select_write_training_testing_10_fold_cv(l_net_name
                                              , l_p_net
                                              , p_out_dir
@@ -24,8 +19,7 @@ def select_write_training_testing_10_fold_cv(l_net_name
     """
     from json import load
     import sys
-    # read the parameters from config files
-    # d_run_config__value = load(open(P_CONFIG, 'r'))
+   
     sys.path.insert(1, p_src_code+'code')  # include the path of code of netprophet project
     from pandas import read_csv, Series, pivot_table, melt
     import numpy as np
@@ -39,18 +33,14 @@ def select_write_training_testing_10_fold_cv(l_net_name
     d_net_name__df = {}  # a dictionary for input networks such lasso and de
     if not os.path.exists(p_out_dir):  # create the output folder if it doesn't exist
         os.makedirs(p_out_dir)
-    # extract p_reg and p_target from config files
-    # d_run_config_values = load(open(d_config__value['p_config'], 'r'))
-
-    # p_reg = d_run_config_values['p_reg'] if not p_reg else p_reg
-    # p_target = d_run_config_values['p_target'] if not p_target else p_target
-    
     l_target = list(read_csv(p_target, header=None)[0])
     l_reg = list(read_csv(p_reg, header=None)[0])
     # -------------------------------------------------------- #
     # |           *** Read Networks from files ***           | #
     # -------------------------------------------------------- #
     for net_name, p_net in zip(l_net_name, l_p_net):
+        if p_net == "NONE":  # if the path of network is an empty string, skip it. 
+            continue
         d_net_name__df[net_name] = read_csv(p_net, header=None, sep='\t')
         if len(d_net_name__df[net_name].columns) > 3:  # this is a matrix, melt it
             d_net_name__df[net_name] = read_csv_indexed(p_df=p_net, p_index=p_reg, p_column=p_target)
@@ -73,6 +63,8 @@ def select_write_training_testing_10_fold_cv(l_net_name
     # ---------------------------------------------------------- #
     for fold in range(10):
         for net_name, p_net in zip(l_net_name, l_p_net):
+            if p_net == "NONE":  # if the path of network is an empty string, skip it. 
+                continue
             # write training set
             df_train_net = d_net_name__df[net_name].loc[d_net_name__df[net_name]['REGULATOR'].isin(d_fold__l_reg_training[fold]), :]
             df_train_net.to_csv(p_out_dir + 'fold' + str(fold) + '_train_' + net_name + '.tsv', header=False, index=False, sep='\t')
@@ -116,7 +108,7 @@ def select_reg_for_training_testing(df_binding
     # stratify the regulator based on the number of target genes
     for i in range(nbr_cutoff):
         # extract index start and end for cutoff
-        if i == nbr_cutoff - 1:
+        if i == nbr_cutoff - 1:  # if last cutoff
             idx_start, idx_end = i*10, i*10+10+size_last_cutoff
         else:
             idx_start, idx_end = i*10, i*10+10
@@ -129,7 +121,7 @@ def select_reg_for_training_testing(df_binding
         for idx_reg, reg in enumerate(l_reg_cutoff):  # populate the list of regulators for testing
             d_fold__l_reg_testing[idx_reg%10].append(reg)
         for fold in range(10):  # populate the list of regulators for training
-            d_fold__l_reg_training[fold] += [r for r in l_reg_cutoff if r not in d_fold__l_reg_testing[fold]]
+            d_fold__l_reg_training[fold] += [r for r in l_reg_cutoff if (r not in d_fold__l_reg_testing[fold]) and (int(df_binding_grouped_sorted[df_binding_grouped_sorted.index == r].VALUE) != 0)]
 
     # write the regulators for the training and testing sets
     for fold in range(10):
@@ -165,7 +157,7 @@ def main():
         parser.add_argument('--l_p_net', '-l_p_net', nargs='+', help='list of paths of networks that names were provided')
         parser.add_argument('--p_out_dir', '-p_out_dir', help='path of output directory for the 10-fold data')
         parser.add_argument('--exclude_tf', '-exclude_tf', help='flag to exclude tf with no supported events at top edges'
-                            , default='ON')
+                            , default='OFF')
         parser.add_argument('--seed', '-seed', help='seed for selection', type=int, nargs='?', default=0)
         parser.add_argument('--flag_debug', '-flag_debug', nargs='+', default='OFF')
         parser.add_argument('--p_reg', '-p_reg', help='file of list of regulators')

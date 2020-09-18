@@ -17,6 +17,8 @@ def read_csv_indexed(p_df, p_index=None, p_column=None, sep='\t'
     df = read_csv(p_df, header=None, sep=sep)
     l_index = list(read_csv(p_index, header=None)[0])
     l_column = list(read_csv(p_column, header=None)[0])
+    if len(df.columns.to_list()) >  len(l_index):
+        df = df.dropna(axis='columns')
     df.index, df.columns = l_index, l_column
     return df
 

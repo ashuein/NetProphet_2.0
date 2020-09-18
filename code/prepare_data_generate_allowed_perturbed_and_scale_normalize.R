@@ -71,9 +71,8 @@ scale_normalize_expr_matrix = function(df_expr, flag_microarray){
   *"
   #RNA-Seq Data
   if (flag_microarray == "RNA-SEQ"){
-      tdata <- log(tdata+1)/log(2)
-      rdata <- log(rdata+1)/log(2)
-    }
+      df_expr <- log(df_expr+1)/log(2)
+  }
     
   df_expr = df_expr - apply(df_expr, 1, mean)
   sd_expr = apply(df_expr,1,sd)

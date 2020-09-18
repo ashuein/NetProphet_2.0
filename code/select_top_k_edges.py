@@ -53,6 +53,8 @@ def select_top_k_edges(p_rank_net
 
     d_net_name__df = {}
     for net_name, p_net, out_net in zip(l_net_name, l_p_in_net, l_out_net)  :
+        if p_net == "NONE":  # if network path is an empty string, skip it.
+            continue
         d_net_name__df[net_name] = read_csv_indexed(p_df=p_net, p_index=p_reg, p_column=p_target)
         d_net_name__df[net_name] = melt(d_net_name__df[net_name].reset_index(), id_vars='index', value_vars=l_target)
         d_net_name__df[net_name].columns = ['REGULATOR', 'TARGET', net_name]
@@ -64,7 +66,6 @@ def select_top_k_edges(p_rank_net
         if not os.path.exists(p_out_dir):
             os.mkdir(p_out_dir)
         d_net_name__df[net_name].to_csv(p_out_dir + out_net, header=False, index=False, sep='\t')
-        print(p_out_dir + out_net)
         
 
 def main():

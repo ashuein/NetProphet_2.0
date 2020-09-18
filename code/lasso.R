@@ -202,7 +202,7 @@ if (sys.nframe() == 0){
   p_in_sample = make_option(c("--p_in_sample"), type="character", default=NULL, help="path of list of samples ids")
   flag_global_shrinkage = make_option(c("--flag_global_shrinkage"), type="character", default="OFF", help="ON or OFF for netprophet1.0 global shrinkage")
   flag_local_shrinkage = make_option(c("--flag_local_shrinkage"), type="character", default="ON", help="ON or OFF for netprophet1.0 local shrinkage")
-  greenfield_method = make_option(c("--greenfield_method"), type="character", default="ONE", help="ONE or TWO for greenfield method 1 or 2")
+  greenfield_method = make_option(c("--greenfield_method"), type="character", default="OFF", help="ONE or TWO for greenfield method 1 or 2")
   fname_lasso = make_option(c("--fname_lasso"), type="character", default=NULL, help="output - path of generated lasso network")
   p_out_dir = make_option(c("--p_out_dir"), type="character", default=NULL, help="output - path of output directory for results")
   flag_debug = make_option(c("--flag_debug"), type="character", default="OFF", help="flag for debugging mode.")
